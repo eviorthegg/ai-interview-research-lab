@@ -213,3 +213,19 @@ def test_single_scenario_driver_warning():
     control = {"m1": {"s1": 60, "s2": 72, "s3": 71}}
     variant = {"m1": {"s1": 85, "s2": 70, "s3": 69}}
     assert compare_arms(control, variant)["overall"]["single_scenario_driver_warning"]
+
+
+def test_pairwise_sample_is_random_reproducible_and_complete_only():
+    from orchestration import select_pairwise_sample
+    by_key = {("p", "HR", i): {"control": f"c{i}", "variant": f"v{i}"} for i in range(20)}
+    by_key[("p", "HR", 99)] = {"control": "c99"}  # incomplete pair, never judged
+    a = select_pairwise_sample(by_key, 6, seed="exp-1")
+    b = select_pairwise_sample(by_key, 6, seed="exp-1")
+    c = select_pairwise_sample(by_key, 6, seed="exp-2")
+    assert len(a) == 6 and a == b              # reproducible for the same experiment
+    assert a != c                              # different experiments, different sample
+    assert all("variant" in p for p in a)      # only complete pairs
+    first_six = [by_key[k] for k in sorted(by_key, key=repr)][:6]
+    assert a != first_six                      # not just the first pairs anymore
+    assert len(select_pairwise_sample(by_key, 50, seed="x")) == 20
+

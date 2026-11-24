@@ -7,6 +7,7 @@ and uses idempotent step keys so retries never duplicate cost.
 from __future__ import annotations
 
 import json
+import random
 import statistics as pystats
 import time
 import traceback
@@ -34,6 +35,25 @@ from services.provider import (CallContext, CancellationRequested,
 from services.statistics_service import compare_arms
 from state_machine import emit_progress, transition
 from config import get_config
+
+
+# Pairwise judging costs two LLM calls per pair (both orderings), so only a
+# sample of pairs is judged.
+MAX_PAIRWISE_JUDGED = 6
+
+
+def select_pairwise_sample(by_key: dict[tuple, dict], cap: int, seed: str) -> list[dict]:
+    """Pick up to `cap` complete control/variant pairs to judge.
+
+    The sample is random, so every scenario has the same chance of being judged
+    instead of always the first ones in insertion order. It is seeded with the
+    experiment id, so re-running the same experiment judges the same pairs.
+    """
+    complete = [by_key[k] for k in sorted(by_key, key=repr)
+                if "control" in by_key[k] and "variant" in by_key[k]]
+    if len(complete) <= cap:
+        return complete
+    return random.Random(seed).sample(complete, cap)
 
 
 class ExperimentAborted(Exception):
@@ -187,21 +207,24 @@ def run_experiment_pipeline(session: Session, experiment: Experiment) -> None:
                         == control_arm.architecture_version_id else "variant")
             by_key.setdefault(key, {})[arm_name] = run
         position_bias_count = 0
-        for key, pair in list(by_key.items())[:6]:  # cost control: cap pairwise judges
-            if "control" in pair and "variant" in pair:
-                check_cancel()
-                comparisons = run_pairwise(session, experiment.id, project_id,
-                                           pair["control"], pair["variant"], eval_model,
-                                           cancellation_check=check_cancel)
-                if position_bias_detected(comparisons):
-                    position_bias_count += 1
-                session.commit()
+        complete_pairs = sum(1 for p in by_key.values() if "control" in p and "variant" in p)
+        judged_pairs = select_pairwise_sample(by_key, MAX_PAIRWISE_JUDGED, seed=experiment.id)
+        for pair in judged_pairs:
+            check_cancel()
+            comparisons = run_pairwise(session, experiment.id, project_id,
+                                       pair["control"], pair["variant"], eval_model,
+                                       cancellation_check=check_cancel)
+            if position_bias_detected(comparisons):
+                position_bias_count += 1
+            session.commit()
 
         # -------- aggregation
         transition(session, experiment, "AGGREGATING", actor="worker")
         session.commit()
         comparison = _aggregate(session, experiment, design, control_arm, variant_arm, runs)
         comparison["position_bias_pairs"] = position_bias_count
+        comparison["pairwise_sample"] = {"judged": len(judged_pairs),
+                                         "available": complete_pairs}
         experiment.decision_json = {"comparison": comparison}
         session.commit()
 

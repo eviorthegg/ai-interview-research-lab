@@ -8,7 +8,13 @@ I built it as part of **Evior**, my AI hiring platform, to stop guessing which p
 
 > **Try it free:** with `PROVIDER_MODE=stub` the whole system runs locally with a deterministic fake model. No API key, no cost.
 
-<!-- Add a screenshot or GIF here: docs/screenshot-dashboard.png -->
+![Research dashboard: budget, best architectures by quality vs cost, worker activity and recent findings](docs/screenshots/dashboard.png)
+
+| Experiment results | Architecture registry |
+|---|---|
+| ![Experiment view: blind A/B arms, interview runs with cost, and paired statistics with a bootstrap confidence interval](docs/screenshots/experiment-results.png) | ![Architecture registry: the 8 interview architectures under test, with memory strategy, follow-up policy and context type](docs/screenshots/architectures.png) |
+
+<sub>Screenshots from a local run in free stub mode, so the scores and costs are simulated.</sub>
 
 ## What it does
 
@@ -32,7 +38,7 @@ flowchart LR
     EV --> AG["Aggregation<br/>bootstrap CIs, effect sizes"]
 ```
 
-**Stack:** Python, Flask, SQLAlchemy, Alembic, Pydantic, OpenAI API, React, Vite, Server-Sent Events, pytest (45 tests), Docker Compose.
+**Stack:** Python, Flask, SQLAlchemy, Alembic, Pydantic, OpenAI API, React, Vite, Server-Sent Events, pytest (46 tests), Docker Compose.
 
 ## Interesting problems I solved
 
@@ -88,7 +94,7 @@ alembic revision --autogenerate -m "change"   # future changes
 
 ```bash
 cd backend
-python -m pytest tests/ -q     # 45 tests: unit, integration, critical safety
+python -m pytest tests/ -q     # 46 tests: unit, integration, critical safety
 ```
 
 Tests run entirely in `PROVIDER_MODE=stub` — deterministic, free, no API key.
