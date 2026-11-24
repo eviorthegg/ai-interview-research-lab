@@ -1,5 +1,7 @@
 # AI Interview Research Lab
 
+![tests](https://github.com/eviorthegg/ai-interview-research-lab/actions/workflows/tests.yml/badge.svg)
+
 A full-stack platform for testing **which AI-interviewer setup actually works best**: prompts, memory strategies, context, agent workflow and evaluation methods. It runs repeatable experiments against synthetic candidates and backs every conclusion with statistics, cost tracking and human review.
 
 I built it as part of **Evior**, my AI hiring platform, to stop guessing which prompt or memory design made interviews better, and to measure it instead.
@@ -30,7 +32,7 @@ flowchart LR
     EV --> AG["Aggregation<br/>bootstrap CIs, effect sizes"]
 ```
 
-**Stack:** Python, Flask, SQLAlchemy, Alembic, Pydantic, OpenAI API, React, Vite, Server-Sent Events, pytest (44 tests), Docker Compose.
+**Stack:** Python, Flask, SQLAlchemy, Alembic, Pydantic, OpenAI API, React, Vite, Server-Sent Events, pytest (45 tests), Docker Compose.
 
 ## Interesting problems I solved
 
@@ -86,7 +88,7 @@ alembic revision --autogenerate -m "change"   # future changes
 
 ```bash
 cd backend
-python -m pytest tests/ -q     # 44 tests: unit, integration, critical safety
+python -m pytest tests/ -q     # 45 tests: unit, integration, critical safety
 ```
 
 Tests run entirely in `PROVIDER_MODE=stub` — deterministic, free, no API key.

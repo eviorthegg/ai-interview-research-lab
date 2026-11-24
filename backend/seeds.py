@@ -10,7 +10,6 @@ A0-A6, experiment templates E1-E12. Never seeds completed experiment results.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from sqlalchemy import select
 

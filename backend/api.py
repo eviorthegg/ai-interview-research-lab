@@ -18,7 +18,7 @@ from models import (Architecture, ArchitectureVersion, BackgroundJob, Budget,
                     InterviewTurn, JudgeDisagreement, MemoryEvent,
                     MemorySnapshot, MetricScore, ModelCall, PairwiseComparison,
                     ProgressEvent, PromptModule, PromptVersion, ResearchProject,
-                    ResearchRun, RubricVersion, ScenarioSuite,
+                    ResearchRun, ScenarioSuite,
                     ScenarioSuiteMember, TimelineEvent)
 from repositories import (HiddenTruthAccessDenied, HiddenTruthRepository,
                           HoldoutLockedError, PersonaRepository)
@@ -227,7 +227,6 @@ def mutate_architecture(version_id):
         parent = session.get(ArchitectureVersion, version_id)
         if not parent:
             return error_response("not found", 404, "not_found")
-        arch = session.get(Architecture, parent.architecture_id)
         project = session.execute(select(ResearchProject)).scalars().first()
         try:
             child = arch_service.apply_mutation(

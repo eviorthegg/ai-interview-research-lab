@@ -7,14 +7,13 @@ name/ancestry, control/variant side, previous scores, or cost.
 from __future__ import annotations
 
 import json
-import random
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from models import (EvaluationRun, HardConstraintFinding, InterviewRun,
                     InterviewTurn, JudgeDisagreement, MetricScore,
-                    PairwiseComparison, RubricVersion)
+                    PairwiseComparison)
 from schemas import EvaluatorOutputSchema, PairwiseJudgeSchema
 from security import wrap_untrusted
 from services.provider import CallContext, call_llm

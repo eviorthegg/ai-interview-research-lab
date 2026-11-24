@@ -31,7 +31,7 @@ def test_hidden_truth_allowed_to_simulator(seeded):
 def test_evaluator_needs_completed_interview_and_holdout_locked(seeded):
     from sqlalchemy import select
     from db import session_scope
-    from models import (CandidatePersonaVersion, ScenarioSuite, ScenarioSuiteMember)
+    from models import (ScenarioSuite, ScenarioSuiteMember)
     from repositories import (HiddenTruthAccessDenied, HiddenTruthRepository,
                               HoldoutLockedError)
     with session_scope() as session:

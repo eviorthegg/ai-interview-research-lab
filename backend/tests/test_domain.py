@@ -201,3 +201,15 @@ def test_production_mode_selection_reimplementation():
     assert choose_mode_for_product(8, 0, 0, campaign) == "hr"
     assert choose_mode_for_product(8, 10, 0, campaign) == "technical"
     assert choose_mode_for_product(8, 0, 5, campaign) == "technical"
+
+
+def test_single_scenario_driver_warning():
+    from services.statistics_service import compare_arms
+    # Broad improvement across scenarios -> no warning
+    control = {"m1": {"s1": 70, "s2": 72, "s3": 71}}
+    variant = {"m1": {"s1": 75, "s2": 76, "s3": 74}}
+    assert not compare_arms(control, variant)["overall"]["single_scenario_driver_warning"]
+    # One big win hides small losses elsewhere -> warning
+    control = {"m1": {"s1": 60, "s2": 72, "s3": 71}}
+    variant = {"m1": {"s1": 85, "s2": 70, "s3": 69}}
+    assert compare_arms(control, variant)["overall"]["single_scenario_driver_warning"]

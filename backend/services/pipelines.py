@@ -26,7 +26,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from models import Architecture, ArchitectureVersion, InterviewRun
+from models import ArchitectureVersion, InterviewRun
 from schemas import InterviewerTurnSchema  # noqa: F401 (documentation link)
 from services import web_research
 from services.provider import CallContext, call_llm

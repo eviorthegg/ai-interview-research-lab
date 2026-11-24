@@ -12,7 +12,7 @@ import hashlib
 import json
 import random
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Type
 
 from pydantic import BaseModel, ValidationError

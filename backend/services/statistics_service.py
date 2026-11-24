@@ -7,7 +7,6 @@ on tiny samples.
 """
 from __future__ import annotations
 
-import math
 import random
 import statistics as pystats
 
@@ -83,6 +82,28 @@ def result_label(deltas: list[float], min_effect_points: float,
     return "inconclusive"
 
 
+def single_scenario_driver(control_scores: dict[str, dict[str, float]],
+                           variant_scores: dict[str, dict[str, float]]) -> bool:
+    """True when an overall improvement depends on one scenario.
+
+    Averages each scenario's delta across all metrics, then checks whether the
+    overall mean delta is positive only because of the single best scenario:
+    if dropping that scenario leaves a mean delta of zero or less, the "win"
+    is not robust and gets flagged for review.
+    """
+    per_scenario: dict[str, list[float]] = {}
+    for metric, c in control_scores.items():
+        v = variant_scores.get(metric, {})
+        for key in set(c) & set(v):
+            per_scenario.setdefault(key, []).append(v[key] - c[key])
+    if len(per_scenario) < 2:
+        return False
+    means = sorted(pystats.fmean(d) for d in per_scenario.values())
+    if pystats.fmean(means) <= 0:
+        return False
+    return pystats.fmean(means[:-1]) <= 0
+
+
 def compare_arms(control_scores: dict[str, dict[str, float]],
                  variant_scores: dict[str, dict[str, float]],
                  min_effect_points: float = 3.0,
@@ -107,13 +128,7 @@ def compare_arms(control_scores: dict[str, dict[str, float]],
         }
     label = result_label(all_deltas, min_effect_points,
                          hard_constraint_regression, repetitions)
-    single_driver = False
-    if all_deltas:
-        by_scenario: dict[int, float] = {}
-        # detect improvement driven by a single scenario
-        positives = [d for d in all_deltas if d > 0]
-        if positives and len(positives) <= max(1, len(all_deltas) // 4):
-            single_driver = True
+    single_driver = single_scenario_driver(control_scores, variant_scores)
     return {
         "per_metric": per_metric,
         "overall": {
