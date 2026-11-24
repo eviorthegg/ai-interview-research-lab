@@ -1,0 +1,32 @@
+# Optional local convenience — normal local setup (README) is the primary path.
+services:
+  api:
+    image: python:3.12-slim
+    working_dir: /app/backend
+    volumes: [".:/app"]
+    command: sh -c "pip install -r requirements.txt && python seeds.py && python app.py"
+    environment:
+      - DATABASE_URL=sqlite:////app/evior_research_lab.db
+      - PROVIDER_MODE=${PROVIDER_MODE:-stub}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - RESEARCH_LAB_MODE=true
+      - ALLOW_PRODUCTION_WRITES=false
+    ports: ["5058:5058"]
+  worker:
+    image: python:3.12-slim
+    working_dir: /app/backend
+    volumes: [".:/app"]
+    command: sh -c "pip install -r requirements.txt && python worker.py"
+    environment:
+      - DATABASE_URL=sqlite:////app/evior_research_lab.db
+      - PROVIDER_MODE=${PROVIDER_MODE:-stub}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - RESEARCH_LAB_MODE=true
+      - ALLOW_PRODUCTION_WRITES=false
+    depends_on: [api]
+  frontend:
+    image: node:22-slim
+    working_dir: /app/frontend
+    volumes: [".:/app"]
+    command: sh -c "npm install && npm run dev -- --host"
+    ports: ["5173:5173"]
